@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, Error, Input, FormField, Label, Textarea } from "../styles";
+import { Button, Error, Input, FormField, Label } from "../styles";
 
 function SignUpForm({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -12,64 +12,57 @@ function SignUpForm({ onLogin }) {
     e.preventDefault();
     setErrors([]);
     setIsLoading(true);
-    fetch("/signup", {
+
+    fetch("/auth/register", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         username,
         password,
-        password_confirmation: passwordConfirmation
+        password_confirmation: passwordConfirmation,
       }),
-    }).then((r) => {
-      setIsLoading(false);
-      if (r.ok) {
-        r.json().then(({token, user}) => onLogin(token, user));
-      } else {
-        r.json().then((err) => setErrors(err.errors));
-      }
-    });
+    })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          setIsLoading(false);
+          setErrors([data.msg || "Registration failed"]);
+          return;
+        }
+        // use the returned token directly
+        onLogin(data.access_token, data.user);
+      })
+      .catch(() => {
+        setIsLoading(false);
+        setErrors(["Network error"]);
+      });
   }
 
   return (
     <form onSubmit={handleSubmit}>
       <FormField>
         <Label htmlFor="username">Username</Label>
-        <Input
-          type="text"
-          id="username"
-          autoComplete="off"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
+        <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
       </FormField>
       <FormField>
         <Label htmlFor="password">Password</Label>
-        <Input
-          type="password"
-          id="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          autoComplete="current-password"
-        />
+        <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
       </FormField>
       <FormField>
-        <Label htmlFor="password">Password Confirmation</Label>
+        <Label htmlFor="password_confirmation">Password Confirmation</Label>
         <Input
-          type="password"
           id="password_confirmation"
+          type="password"
           value={passwordConfirmation}
           onChange={(e) => setPasswordConfirmation(e.target.value)}
-          autoComplete="current-password"
         />
       </FormField>
       <FormField>
         <Button type="submit">{isLoading ? "Loading..." : "Sign Up"}</Button>
       </FormField>
       <FormField>
-        {errors.map((err) => (
-          <Error key={err}>{err}</Error>
+        {errors.map((err, i) => (
+          <Error key={i}>{err}</Error>
         ))}
       </FormField>
     </form>
