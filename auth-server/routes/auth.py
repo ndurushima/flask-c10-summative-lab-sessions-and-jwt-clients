@@ -1,5 +1,5 @@
-from flask import Blueprint, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, create_access_token, create_refresh_token
 from ..schemas.schemas import RegisterSchema, LoginSchema, UserSchema 
 from ..models.models import User, TokenBlockList
 from ..extensions import db
@@ -12,12 +12,21 @@ user_schema = UserSchema()
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    pass
+    payload = register_schema.load(request.get_json() or {})
+    print (payload)
+
+    user = User(username=payload ["username"])
+    user-password = payload["password"]
+    db. session. add (user) 
+    db.session. commit()
+    access = create_access_token(identity=user.id)
+    refresh = create_refresh_token(identity=user.id)
+    return jsonify(user=user_schema.dump(user), access_token=access, refresh_token=refresh), 201
 
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    pass
+    return jsonify(ok=True)
 
 @auth_bp.get("/me")
 @jwt_required()
