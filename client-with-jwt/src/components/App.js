@@ -6,31 +6,31 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    fetch("/me", {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`
-      }
-    }).then((r) => {
-      if (r.ok) {
-        r.json().then((user) => setUser(user));
-      }
-    });
+    const token = localStorage.getItem("token");
+    if (!token) return;
+    fetch("/auth/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => setUser(data.user))
+      .catch(() => {
+        localStorage.removeItem("token");
+        setUser(null);
+      });
   }, []);
 
-  const onLogin = (token, user) => {
-    localStorage.setItem("token", token);
-    setUser(user);
-  }
+  const onLogin = (access_token, userObj) => {
+    localStorage.setItem("token", access_token);
+    setUser(userObj);
+  };
 
-  if (!user) return <Login onLogin={onLogin} />;
-
-  return (
+  return user ? (
     <>
       <NavBar setUser={setUser} />
       <main>
         <p>You are logged in!</p>
       </main>
     </>
+  ) : (
+    <Login onLogin={onLogin} />
   );
 }
 
