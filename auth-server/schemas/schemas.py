@@ -24,4 +24,15 @@ class PasswordSchema(Schema):
     current_password = fields.String(required=True, load_only=True)
     new_password = fields.String(required=True, validate=validate.Length(min=7), load_only=True)
 
+class NoteSchema(Schema):
+    id = fields.Int()
+    title = fields.String()
+    content = fields.String()
+    created_at = fields.DateTime()
+
+class NoteCreateSchema(Schema):
+    title = fields.String(required=True, validate=validate.Length(min=1))
+    content = fields.String(required=True, validate=validate.Length(min=1))
+
+
 

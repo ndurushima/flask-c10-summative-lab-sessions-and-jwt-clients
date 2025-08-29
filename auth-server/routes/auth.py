@@ -1,8 +1,8 @@
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, create_access_token, create_refresh_token
-from ..schemas.schemas import RegisterSchema, LoginSchema, UserSchema 
-from ..models.models import User, TokenBlockList
-from ..extensions import db
+from schemas.schemas import RegisterSchema, LoginSchema, UserSchema 
+from models.models import User, TokenBlocklist
+from extensions import db
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -49,6 +49,6 @@ def me():
 def logout():
     jti = get_jwt()["jti"]
     uid = get_jwt_identity()
-    db.session.add(TokenBlockList(jti=jti, user_id=uid))
+    db.session.add(TokenBlocklist(jti=jti, user_id=uid))
     db.session.committ()
     return jsonify(msg="Successfully logged out"), 200
