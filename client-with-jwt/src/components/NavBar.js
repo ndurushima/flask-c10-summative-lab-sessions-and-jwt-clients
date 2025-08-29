@@ -4,25 +4,22 @@ import styled from "styled-components";
 import { Button } from "../styles";
 
 function NavBar({ setUser }) {
-  function handleLogoutClick() {
+  async function handleLogout() {
+    const token = localStorage.getItem("token");
+    try {
+      await fetch("/auth/logout", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    } catch {}
     localStorage.removeItem("token");
     setUser(null);
   }
 
   return (
-    <Wrapper>
-      <Logo>
-        <Link to="/">My App</Link>
-      </Logo>
-      <Nav>
-        <Button>
-          Do Something
-        </Button>
-        <Button variant="outline" onClick={handleLogoutClick}>
-          Logout
-        </Button>
-      </Nav>
-    </Wrapper>
+    <nav style={{ display: "flex", justifyContent: "flex-end", padding: 16, gap: 8 }}>
+      <Button onClick={handleLogout}>Log out</Button>
+    </nav>
   );
 }
 
