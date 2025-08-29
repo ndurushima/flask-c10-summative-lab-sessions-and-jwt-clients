@@ -11,14 +11,14 @@ password_schema = PasswordSchema()
 @user_bp.get("/me")
 @jwt_required()
 def get_users():
-    uid = get_jwt_identity()
+    uid = int(get_jwt_identity())
     user = User.query.get_or_404(uid)
     return jsonify(user=user_schema.dump(user)), 200
 
 @user_bp.patch("/me")
 @jwt_required()
 def update_me():
-    uid = get_jwt_identity()
+    uid = int(get_jwt_identity())
     user = User.query.get_or_404(uid)
     payload = request.get_json() or {}
 

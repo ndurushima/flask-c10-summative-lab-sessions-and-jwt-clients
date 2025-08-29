@@ -16,7 +16,7 @@ def _query_user_notes(uid):
 @notes_bp.get("")
 @jwt_required()
 def index_notes():
-    uid = get_jwt_identity()
+    uid = int(get_jwt_identity())
 
     # pagination params
     try:
@@ -39,7 +39,7 @@ def index_notes():
 @notes_bp.post("")
 @jwt_required()
 def create_note():
-    uid = get_jwt_identity()
+    uid = int(get_jwt_identity())
     data = note_create_schema.load(request.get_json() or {})
     note = Note(title=data["title"], content=data["content"], user_id=uid)
     db.session.add(note)
@@ -49,7 +49,7 @@ def create_note():
 @notes_bp.patch("/<int:note_id>")
 @jwt_required()
 def update_note(note_id):
-    uid = get_jwt_identity()
+    uid = int(get_jwt_identity())
     note = _query_user_notes(uid).filter_by(id=note_id).first()
     if not note:
         return jsonify(msg="Not found"), 404
@@ -70,7 +70,7 @@ def update_note(note_id):
 @notes_bp.delete("/<int:note_id>")
 @jwt_required()
 def delete_note(note_id):
-    uid = get_jwt_identity()
+    uid = int(get_jwt_identity())
     note = _query_user_notes(uid).filter_by(id=note_id).first()
     if not note:
         return jsonify(msg="Not found"), 404

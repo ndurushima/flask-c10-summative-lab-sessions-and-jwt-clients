@@ -21,17 +21,15 @@ function SignUpForm({ onLogin }) {
         password,
         password_confirmation: passwordConfirmation,
       }),
-    })
-      .then(async (r) => {
-        const data = await r.json().catch(() => ({}));
-        if (!r.ok) {
-          setIsLoading(false);
-          setErrors([data.msg || "Registration failed"]);
-          return;
-        }
-        // use the returned token directly
+    }).then(async (r) => {
+      const data = await r.json().catch(() => ({}));
+      setIsLoading(false);
+      if (r.ok) {
         onLogin(data.access_token, data.user);
-      })
+      } else {
+        setErrors([data.msg || "Registration failed"]);
+      }
+    })
       .catch(() => {
         setIsLoading(false);
         setErrors(["Network error"]);

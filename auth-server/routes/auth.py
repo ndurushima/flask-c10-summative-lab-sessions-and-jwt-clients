@@ -21,8 +21,9 @@ def register():
     db. session.add(user) 
     db.session.commit()
 
-    access = create_access_token(identity=user.id)
-    refresh = create_refresh_token(identity=user.id)
+    access = create_access_token(identity=str(user.id))
+    refresh = create_refresh_token(identity=str(user.id))
+
     return jsonify(user=user_schema.dump(user), access_token=access, refresh_token=refresh), 201
 
 
@@ -33,22 +34,23 @@ def login():
     if not user or not user.check_password(payload["password"]):
         return jsonify(msg="Invalid username or password"), 401
 
-    access = create_access_token(identity=user.id)
-    refresh = create_refresh_token(identity=user.id)
+    access = create_access_token(identity=str(user.id))
+    refresh = create_refresh_token(identity=str(user.id))
     return jsonify(user=user_schema.dump(user), access_token=access, refresh_token=refresh), 200
 
 @auth_bp.get("/me")
 @jwt_required()
 def me():
-    uid = get_jwt_identity()
+    uid = int(get_jwt_identity())
     user = User.query.get_or_404(uid)
     return jsonify(user=user_schema.dump(user)), 200
 
 @auth_bp.post("/logout")
-@jwt_required()
+@jwt_required(optional=True)
 def logout():
-    jti = get_jwt()["jti"]
-    uid = get_jwt_identity()
-    db.session.add(TokenBlocklist(jti=jti, user_id=uid))
-    db.session.committ()
+    claims = get_jwt()
+    uid = int(get_jwt_identity())
+    if claims and uid:
+        db.session.add(TokenBlocklist(jti=claims["jti"], user_id=uid))
+        db.session.commit()
     return jsonify(msg="Successfully logged out"), 200

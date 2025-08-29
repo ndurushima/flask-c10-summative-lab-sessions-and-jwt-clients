@@ -17,9 +17,9 @@ function App() {
       });
   }, []);
 
-  const onLogin = (access_token, userObj) => {
+  const onLogin = (access_token, user) => {
     localStorage.setItem("token", access_token);
-    setUser(userObj);
+    setUser(user);
   };
 
   return user ? (
