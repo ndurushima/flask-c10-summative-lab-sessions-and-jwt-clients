@@ -16,9 +16,11 @@ def register():
     print (payload)
 
     user = User(username=payload ["username"])
-    user-password = payload["password"]
-    db. session. add (user) 
-    db.session. commit()
+    user.password = payload["password"]
+
+    db. session.add(user) 
+    db.session.commit()
+
     access = create_access_token(identity=user.id)
     refresh = create_refresh_token(identity=user.id)
     return jsonify(user=user_schema.dump(user), access_token=access, refresh_token=refresh), 201
@@ -26,7 +28,14 @@ def register():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    return jsonify(ok=True)
+    payload = login_schema.load(request.get_json() or {})
+    user = User.query.filter_by(username=payload["username"]).first()
+    if not user or not user.check_password(payload["password"]):
+        return jsonify(msg="Invalid username or password"), 401
+
+    access = create_access_token(identity=user.id)
+    refresh = create_refresh_token(identity=user.id)
+    return jsonify(user=user_schema.dump(user), access_token=access, refresh_token=refresh), 200
 
 @auth_bp.get("/me")
 @jwt_required()

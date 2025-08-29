@@ -6,8 +6,10 @@ from models.models import User, db
 user_bp = Blueprint("users", __name__)
 
 user_schema = UserSchema()
+password_schema = PasswordSchema()
 
 @user_bp.get("/me")
+@jwt_required()
 def get_users():
     uid = get_jwt_identity()
     user = User.query.get_or_404(uid)
@@ -23,17 +25,14 @@ def update_me():
     # password update flow
     if "current_password" in payload or "new_password" in payload:
         # need to make pwd schema so we can change the password
-        data = PasswordSchema.load(payload)
+        data = password_schema.load(payload)
         if not user.check_password(data["current_password"]):
             return jsonify(msg="Current password is incorrect"), 400
+        
         user.password = data["new_password"]
-        db.session.committ()
+        db.session.commit()
 
-        # remove current token
-        # jti = get_jwt()["jti"]
-        # db.session.add(TokenBlock List(jti=jti, user_id=uid))
-        # db.session.committ()
-        # return jsonify(msg="Password updated, please log in again"), 200
+        return jsonify(msg="Password updated, please log in again"), 200
     
     # update profile infoflow
-    data = data
+    return jsonify(msg="No changes"), 200
