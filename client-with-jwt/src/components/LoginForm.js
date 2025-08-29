@@ -10,45 +10,36 @@ function LoginForm({ onLogin }) {
   function handleSubmit(e) {
     e.preventDefault();
     setIsLoading(true);
-    fetch("/login", {
+    setErrors([]);
+    fetch("/auth/login", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
-    }).then((r) => {
-      setIsLoading(false);
-      if (r.ok) {
-        r.json().then(({token, user}) => onLogin(token, user));
-      } else {
-        r.json().then((err) => setErrors(err.errors));
-      }
-    });
+    })
+      .then(async (r) => {
+        const data = await r.json().catch(() => ({}));
+        setIsLoading(false);
+        if (r.ok) {
+          onLogin(data.access_token, data.user);
+        } else {
+          setErrors([data.msg || "Login failed"]);
+        }
+      })
+      .catch(() => {
+        setIsLoading(false);
+        setErrors(["Network error"]);
+      });
   }
-
-  console.log('errors', errors);
 
   return (
     <form onSubmit={handleSubmit}>
       <FormField>
         <Label htmlFor="username">Username</Label>
-        <Input
-          type="text"
-          id="username"
-          autoComplete="off"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
+        <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
       </FormField>
       <FormField>
         <Label htmlFor="password">Password</Label>
-        <Input
-          type="password"
-          id="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
       </FormField>
       <FormField>
         <Button variant="fill" color="primary" type="submit">
@@ -56,8 +47,8 @@ function LoginForm({ onLogin }) {
         </Button>
       </FormField>
       <FormField>
-        {errors.map((err) => (
-          <Error key={err}>{err}</Error>
+        {errors.map((err, i) => (
+          <Error key={i}>{err}</Error>
         ))}
       </FormField>
     </form>
