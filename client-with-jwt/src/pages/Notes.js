@@ -79,5 +79,95 @@ export default function Notes() {
         }
     }
 
+    const pages = Math.max(1, Math.ceil(total / perPage));
 
+    return (
+        <Container>
+        <Title>Your Notes</Title>
+
+        <CreateForm onSubmit={createNote}>
+            <NoteInput
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            autoComplete="off"
+            />
+            <NoteTextarea
+            placeholder="Content"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={3}
+            />
+            <div>
+            <PrimaryBtn variant="fill" color="primary">Add Note</PrimaryBtn>
+            </div>
+        </CreateForm>
+
+        {err && <ErrorText>{err}</ErrorText>}
+
+        {loading ? (
+            <div>Loading…</div>
+        ) : notes.length === 0 ? (
+            <div>No notes yet.</div>
+        ) : (
+            <List>
+            {notes.map((n) => (
+                <NoteItem key={n.id} note={n} onSave={saveNote} onDelete={removeNote} />
+            ))}
+            </List>
+        )}
+
+        <Pager>
+            <NavBtn disabled={page <= 1} onClick={() => setPage(1)}>⏮</NavBtn>
+            <NavBtn disabled={page <= 1} onClick={() => setPage(page - 1)}>◀</NavBtn>
+            <PageInfo>Page {page} / {pages}</PageInfo>
+            <NavBtn disabled={page >= pages} onClick={() => setPage(page + 1)}>▶</NavBtn>
+            <NavBtn disabled={page >= pages} onClick={() => setPage(pages)}>⏭</NavBtn>
+            <Spacer>
+            Per page:
+            <PerPageSelect
+                value={perPage}
+                onChange={(e) => { setPage(1); setPerPage(Number(e.target.value)); }}
+            >
+                {[5, 10, 20, 50].map(n => <option key={n} value={n}>{n}</option>)}
+            </PerPageSelect>
+            </Spacer>
+        </Pager>
+        </Container>
+    );
+    }
+
+function NoteItem({ note, onSave, onDelete }) {
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(note.title);
+  const [content, setContent] = useState(note.content);
+
+  return (
+    <Card>
+      {editing ? (
+        <>
+          <NoteInput value={title} onChange={(e) => setTitle(e.target.value)} />
+          <NoteTextarea value={content} onChange={(e) => setContent(e.target.value)} rows={3} />
+          <Actions>
+            <PrimaryBtn variant="fill" color="primary"
+              onClick={() => { onSave(note.id, { title: title.trim(), content: content.trim() }); setEditing(false); }}>
+              Save
+            </PrimaryBtn>
+            <GhostBtn onClick={() => { setTitle(note.title); setContent(note.content); setEditing(false); }}>
+              Cancel
+            </GhostBtn>
+          </Actions>
+        </>
+      ) : (
+        <>
+          <NoteTitle>{note.title}</NoteTitle>
+          <NoteContent>{note.content}</NoteContent>
+          <Actions>
+            <GhostBtn onClick={() => setEditing(true)}>Edit</GhostBtn>
+            <DangerBtn onClick={() => onDelete(note.id)}>Delete</DangerBtn>
+          </Actions>
+        </>
+      )}
+    </Card>
+  );
 }
