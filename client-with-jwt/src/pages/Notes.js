@@ -1,4 +1,10 @@
 import React, { useEffect, useState } from "react";
+import {
+  Container, Title, CreateForm, NoteInput, NoteTextarea, ErrorText,
+  List, Card, NoteTitle, NoteContent, Actions, Pager, PageInfo,
+  Spacer, PerPageSelect, PrimaryBtn, GhostBtn, DangerBtn, NavBtn
+} from "../styles/NotesStyles";
+
 
 function authHeaders() {
     const token = localStorage.getItem("token");
@@ -35,10 +41,8 @@ export default function Notes() {
         }
     }
 
-
-    useEffect(() => {
-        load();
-    }, [page, perPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => { load(); }, [page, perPage]);
 
 
     async function createNote(e) {
@@ -60,6 +64,22 @@ export default function Notes() {
         setErr(e.message);
         }
     }
+
+
+    async function saveNote(id, patch) {
+    try {
+      const res = await fetch(`/notes/${id}`, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify(patch),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.msg || "Update failed");
+      setNotes((ns) => ns.map((n) => (n.id === id ? data.note : n)));
+    } catch (e) {
+      setErr(e.message);
+    }
+  }
 
 
     async function removeNote(id) {
