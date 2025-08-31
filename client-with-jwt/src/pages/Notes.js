@@ -61,4 +61,23 @@ export default function Notes() {
         }
     }
 
+
+    async function removeNote(id) {
+        try {
+            const res = await fetch(`/notes/${id}`, {
+                method: "DELETE",
+                headers: authHeaders(),
+            });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.msg || "Delete failed");
+            }
+            setNotes((ns) => ns.filter((n) => n.id !== id));
+            setTotal((t) => Math.max(0, t - 1));
+        } catch (e) {
+            setErr(e.message);
+        }
+    }
+
+
 }
